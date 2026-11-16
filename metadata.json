@@ -1,0 +1,6 @@
+{
+  "name": "MenuStudio — Kadak Café QR Menu",
+  "description": "Interactive mobile-first QR digital restaurant menu and owner dashboard inspired by Kadak Café.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

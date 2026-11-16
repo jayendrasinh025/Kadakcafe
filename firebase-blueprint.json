@@ -1,0 +1,270 @@
+{
+  "entities": {
+    "RestaurantSettings": {
+      "title": "RestaurantSettings",
+      "description": "Configuration and branding for the restaurant digital QR menu.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Restaurant display name",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "tagline": {
+          "type": "string",
+          "description": "Short tagline displayed in the header",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Optional logo image URL or data URI",
+          "maxLength": 150000
+        },
+        "brandColor": {
+          "type": "string",
+          "description": "Primary header hex color",
+          "minLength": 4,
+          "maxLength": 20,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        },
+        "accentColor": {
+          "type": "string",
+          "description": "Accent yellow hex color",
+          "minLength": 4,
+          "maxLength": 20,
+          "pattern": "^#[0-9A-Fa-f]{3,8}$"
+        },
+        "isOpen": {
+          "type": "boolean",
+          "description": "Whether the restaurant is currently open"
+        },
+        "openingHours": {
+          "type": "string",
+          "description": "Formatted opening hours string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Restaurant phone number",
+          "maxLength": 30
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "Restaurant WhatsApp number with country code",
+          "maxLength": 30
+        },
+        "googleReviewUrl": {
+          "type": "string",
+          "description": "Configurable Google Review URL",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "secondaryActionType": {
+          "type": "string",
+          "description": "Second button mode in the fixed bottom bar",
+          "enum": ["waiter", "whatsapp", "call", "disabled"]
+        },
+        "scanCount": {
+          "type": "number",
+          "description": "Total QR menu scan count"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the restaurant owner",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": [
+        "name",
+        "tagline",
+        "brandColor",
+        "accentColor",
+        "isOpen",
+        "openingHours",
+        "contactNumber",
+        "whatsappNumber",
+        "googleReviewUrl",
+        "secondaryActionType",
+        "scanCount",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "MenuCategory": {
+      "title": "MenuCategory",
+      "description": "A food or beverage category tab on the digital menu.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Category display name",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "slug": {
+          "type": "string",
+          "description": "URL-safe category identifier",
+          "minLength": 1,
+          "maxLength": 60,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Display order index"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the restaurant owner",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": ["name", "slug", "sortOrder", "ownerId", "updatedAt"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "An individual food or beverage item on the menu.",
+      "type": "object",
+      "properties": {
+        "categoryId": {
+          "type": "string",
+          "description": "ID of the parent MenuCategory",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Food or drink name",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "description": {
+          "type": "string",
+          "description": "Short item description",
+          "maxLength": 300
+        },
+        "price": {
+          "type": "number",
+          "description": "Price in INR"
+        },
+        "isVeg": {
+          "type": "boolean",
+          "description": "True if vegetarian, false if non-vegetarian"
+        },
+        "isBestseller": {
+          "type": "boolean",
+          "description": "Whether item has Bestseller badge"
+        },
+        "isChefsPick": {
+          "type": "boolean",
+          "description": "Whether item has Chef's Pick badge"
+        },
+        "isAvailable": {
+          "type": "boolean",
+          "description": "Whether item is currently available"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional food thumbnail URL or data URI",
+          "maxLength": 150000
+        },
+        "sortOrder": {
+          "type": "number",
+          "description": "Display order within the category"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the restaurant owner",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": [
+        "categoryId",
+        "name",
+        "description",
+        "price",
+        "isVeg",
+        "isBestseller",
+        "isChefsPick",
+        "isAvailable",
+        "sortOrder",
+        "ownerId",
+        "updatedAt"
+      ]
+    },
+    "RestaurantTable": {
+      "title": "RestaurantTable",
+      "description": "Table identifier for QR code generation.",
+      "type": "object",
+      "properties": {
+        "tableNumber": {
+          "type": "string",
+          "description": "Table number or label (e.g., 01, 02, Patio-1)",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "label": {
+          "type": "string",
+          "description": "Optional descriptive label (e.g., Window Booth)",
+          "maxLength": 80
+        },
+        "scans": {
+          "type": "number",
+          "description": "Number of scans recorded for this table"
+        },
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the restaurant owner",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update"
+        }
+      },
+      "required": ["tableNumber", "label", "scans", "ownerId", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/restaurant_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/RestaurantSettings" },
+      "description": "Singleton settings document for the restaurant."
+    },
+    "/menu_categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/MenuCategory" },
+      "description": "Menu categories ordered by sortOrder."
+    },
+    "/menu_items/{itemId}": {
+      "schema": { "$ref": "#/entities/MenuItem" },
+      "description": "Food and beverage menu items."
+    },
+    "/tables/{tableId}": {
+      "schema": { "$ref": "#/entities/RestaurantTable" },
+      "description": "Restaurant tables for QR code generation."
+    }
+  }
+}

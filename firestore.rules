@@ -1,0 +1,182 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1: Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive Helpers
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'vaghelajayendra031@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Validation Blueprint: RestaurantSettings
+    function isValidRestaurantSettings(data) {
+      return data.keys().hasAll([
+        'name', 'tagline', 'brandColor', 'accentColor', 'isOpen',
+        'openingHours', 'contactNumber', 'whatsappNumber', 'googleReviewUrl',
+        'secondaryActionType', 'scanCount', 'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'name', 'tagline', 'logoUrl', 'brandColor', 'accentColor', 'isOpen',
+        'openingHours', 'contactNumber', 'whatsappNumber', 'googleReviewUrl',
+        'secondaryActionType', 'scanCount', 'ownerId', 'updatedAt'
+      ]) &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+      data.tagline is string && data.tagline.size() >= 1 && data.tagline.size() <= 160 &&
+      (!('logoUrl' in data) || (data.logoUrl is string && data.logoUrl.size() <= 150000)) &&
+      data.brandColor is string && data.brandColor.size() >= 4 && data.brandColor.size() <= 20 && data.brandColor.matches('^#[0-9A-Fa-f]{3,8}$') &&
+      data.accentColor is string && data.accentColor.size() >= 4 && data.accentColor.size() <= 20 && data.accentColor.matches('^#[0-9A-Fa-f]{3,8}$') &&
+      data.isOpen is bool &&
+      data.openingHours is string && data.openingHours.size() >= 1 && data.openingHours.size() <= 100 &&
+      data.contactNumber is string && data.contactNumber.size() <= 30 &&
+      data.whatsappNumber is string && data.whatsappNumber.size() <= 30 &&
+      data.googleReviewUrl is string && data.googleReviewUrl.size() >= 1 && data.googleReviewUrl.size() <= 500 &&
+      data.secondaryActionType is string && data.secondaryActionType in ['waiter', 'whatsapp', 'call', 'disabled'] &&
+      data.scanCount is number && data.scanCount >= 0 &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: MenuCategory
+    function isValidMenuCategory(data) {
+      return data.keys().hasAll(['name', 'slug', 'sortOrder', 'ownerId', 'updatedAt']) &&
+      data.keys().hasOnly(['name', 'slug', 'sortOrder', 'ownerId', 'updatedAt']) &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
+      data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 60 && data.slug.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: MenuItem
+    function isValidMenuItem(data) {
+      return data.keys().hasAll([
+        'categoryId', 'name', 'description', 'price', 'isVeg',
+        'isBestseller', 'isChefsPick', 'isAvailable', 'sortOrder', 'ownerId', 'updatedAt'
+      ]) &&
+      data.keys().hasOnly([
+        'categoryId', 'name', 'description', 'price', 'isVeg',
+        'isBestseller', 'isChefsPick', 'isAvailable', 'imageUrl', 'sortOrder', 'ownerId', 'updatedAt'
+      ]) &&
+      data.categoryId is string && isValidId(data.categoryId) &&
+      data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+      data.description is string && data.description.size() <= 300 &&
+      data.price is number && data.price >= 0 && data.price <= 100000 &&
+      data.isVeg is bool &&
+      data.isBestseller is bool &&
+      data.isChefsPick is bool &&
+      data.isAvailable is bool &&
+      (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 150000)) &&
+      data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 10000 &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // Validation Blueprint: RestaurantTable
+    function isValidRestaurantTable(data) {
+      return data.keys().hasAll(['tableNumber', 'label', 'scans', 'ownerId', 'updatedAt']) &&
+      data.keys().hasOnly(['tableNumber', 'label', 'scans', 'ownerId', 'updatedAt']) &&
+      data.tableNumber is string && data.tableNumber.size() >= 1 && data.tableNumber.size() <= 20 && data.tableNumber.matches('^[a-zA-Z0-9_\\-]+$') &&
+      data.label is string && data.label.size() <= 80 &&
+      data.scans is number && data.scans >= 0 &&
+      data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+      data.ownerId == request.auth.uid &&
+      data.updatedAt == request.time;
+    }
+
+    // 1. restaurant_settings
+    match /restaurant_settings/{settingId} {
+      // Customer QR menu works without login; public read of non-PII restaurant settings
+      allow get: if isValidId(settingId) && resource.data.name is string;
+      allow list: if resource.data.name is string;
+      allow create: if isSignedIn() && isValidId(settingId) && isValidRestaurantSettings(incoming()) && isAdmin();
+      allow update: if isSignedIn() && isValidId(settingId) && isValidRestaurantSettings(incoming()) && (
+        isAdmin() || (
+          existing().ownerId == request.auth.uid &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'tagline', 'logoUrl', 'brandColor', 'accentColor', 'isOpen',
+            'openingHours', 'contactNumber', 'whatsappNumber', 'googleReviewUrl',
+            'secondaryActionType', 'scanCount', 'updatedAt'
+          ])
+        )
+      );
+      allow delete: if isSignedIn() && isValidId(settingId) && (isAdmin() || existing().ownerId == request.auth.uid);
+    }
+
+    // 2. menu_categories
+    match /menu_categories/{categoryId} {
+      allow get: if isValidId(categoryId) && resource.data.name is string;
+      allow list: if resource.data.name is string;
+      allow create: if isSignedIn() && isValidId(categoryId) && isValidMenuCategory(incoming()) && isAdmin();
+      allow update: if isSignedIn() && isValidId(categoryId) && isValidMenuCategory(incoming()) && (
+        isAdmin() || (
+          existing().ownerId == request.auth.uid &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'slug', 'sortOrder', 'updatedAt'])
+        )
+      );
+      allow delete: if isSignedIn() && isValidId(categoryId) && (isAdmin() || existing().ownerId == request.auth.uid);
+    }
+
+    // 3. menu_items
+    match /menu_items/{itemId} {
+      allow get: if isValidId(itemId) && resource.data.name is string;
+      allow list: if resource.data.name is string;
+      allow create: if isSignedIn() && isValidId(itemId) && isValidMenuItem(incoming()) &&
+        exists(/databases/$(database)/documents/menu_categories/$(incoming().categoryId)) &&
+        isAdmin();
+      allow update: if isSignedIn() && isValidId(itemId) && isValidMenuItem(incoming()) &&
+        exists(/databases/$(database)/documents/menu_categories/$(incoming().categoryId)) && (
+          isAdmin() || (
+            existing().ownerId == request.auth.uid &&
+            incoming().ownerId == existing().ownerId &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'categoryId', 'name', 'description', 'price', 'isVeg',
+              'isBestseller', 'isChefsPick', 'isAvailable', 'imageUrl', 'sortOrder', 'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(itemId) && (isAdmin() || existing().ownerId == request.auth.uid);
+    }
+
+    // 4. tables
+    match /tables/{tableId} {
+      allow get: if isValidId(tableId) && resource.data.tableNumber is string;
+      allow list: if resource.data.tableNumber is string;
+      allow create: if isSignedIn() && isValidId(tableId) && isValidRestaurantTable(incoming()) && isAdmin();
+      allow update: if isSignedIn() && isValidId(tableId) && isValidRestaurantTable(incoming()) && (
+        isAdmin() || (
+          existing().ownerId == request.auth.uid &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['tableNumber', 'label', 'scans', 'updatedAt'])
+        )
+      );
+      allow delete: if isSignedIn() && isValidId(tableId) && (isAdmin() || existing().ownerId == request.auth.uid);
+    }
+  }
+}
